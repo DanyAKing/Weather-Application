@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import { writeFile } from 'node:fs/promises';
+import { appendFile } from 'node:fs/promises';
 
 const date = new Date();
 const target = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDay() + 4}, ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
@@ -17,10 +17,8 @@ const processWeatherData = data => {
     godzina_pomiaru: timeOfMeasurement,
     cisnienie: pressurde,
     wilgotnosc_wzgledna: humidity,
-    temperatura: temperature } = foundData;
-
-  // const { ...arg } = foundData;
-  // if (arg === null) console.log('N/A');
+    temperatura: temperature,
+  } = foundData;
 
   const weatherInfo = `Measurement data: ${measurementDate},
   Time: ${timeOfMeasurement}.00.
@@ -33,5 +31,5 @@ try {
   const data = await response.json();
   processWeatherData(data);
 } catch (error) {
-  await writeFile('./log/log.txt', `${target} - ${error.message}`);
+  await appendFile('./log/log.txt', `${target} - ${error.message}\n`);
 }
