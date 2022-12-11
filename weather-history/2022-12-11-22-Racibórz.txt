@@ -1,0 +1,1 @@
+{"id_stacji":"12540","stacja":"Racibórz","data_pomiaru":"2022-12-11","godzina_pomiaru":"22","temperatura":"-2.9","predkosc_wiatru":"5","kierunek_wiatru":"290","wilgotnosc_wzgledna":"84.1","suma_opadu":"0.6","cisnienie":"1006.8"}

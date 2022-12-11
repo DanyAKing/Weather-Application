@@ -1,15 +1,26 @@
 import fetch from 'node-fetch';
-import { appendFile } from 'node:fs/promises';
+import { appendFile, writeFile } from 'node:fs/promises';
 
 const date = new Date();
-const target = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDay() + 4}, ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+const fullDate = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+const fullTime = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 
 const API_URL = 'https://danepubliczne.imgw.pl/api/data/synop';
 
 const cityName = process.argv[2];
 
-const processWeatherData = data => {
+const processWeatherData = async data => {
   const foundData = data.find(stationData => stationData.stacja === cityName);
+
+  try {
+    await writeFile(`./weather-history/${foundData.data_pomiaru}-${foundData.godzina_pomiaru}-${foundData.stacja}.txt`, JSON.stringify(foundData));
+  } catch (error) {
+    await appendFile('./log/log.txt', `${fullTime}, ${fullDate} - ${error}\n\n`);
+    setTimeout(() => {
+      console.log(error.message);
+    }, 1000);
+  }
+
   if (!foundData) console.log('Nie znaleziono takiego miasta w bazie!');
 
   // eslint-disable-next-line no-restricted-syntax
@@ -29,7 +40,6 @@ const processWeatherData = data => {
   Time: ${timeOfMeasurement}.00.
   In ${cityName} there is ${temperature}°, ${humidity}% of humidity, pressure ${pressurde} hPa,`;
   console.log(weatherInfo);
-
 };
 
 try {
@@ -37,5 +47,6 @@ try {
   const data = await response.json();
   processWeatherData(data);
 } catch (error) {
-  await appendFile('./log/log.txt', `${target} - ${error.message}\n`);
+  await appendFile('./log/log.txt', `${fullTime}, ${fullDate} - ${error}\n\n`);
+  console.log(`${error.name}. For more information look at log file.`);
 }
