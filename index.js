@@ -12,6 +12,11 @@ const processWeatherData = data => {
   const foundData = data.find(stationData => stationData.stacja === cityName);
   if (!foundData) console.log('Nie znaleziono takiego miasta w bazie!');
 
+  // eslint-disable-next-line no-restricted-syntax
+  for (const element in foundData) {
+    if (foundData[element] === null) foundData[element] = 'N/A';
+  }
+
   const {
     data_pomiaru: measurementDate,
     godzina_pomiaru: timeOfMeasurement,
@@ -24,6 +29,7 @@ const processWeatherData = data => {
   Time: ${timeOfMeasurement}.00.
   In ${cityName} there is ${temperature}°, ${humidity}% of humidity, pressure ${pressurde} hPa,`;
   console.log(weatherInfo);
+
 };
 
 try {
