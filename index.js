@@ -1,5 +1,6 @@
 import fetch from 'node-fetch';
 import { appendFile, writeFile } from 'node:fs/promises';
+import { normalize, resolve } from 'node:path';
 
 const date = new Date();
 const fullDate = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
@@ -7,21 +8,25 @@ const fullTime = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 
 const API_URL = 'https://danepubliczne.imgw.pl/api/data/synop';
 
-const cityName = process.argv[2];
+const safeJoin = (base, target) => {
+  const targetPath = '.' + ('/' + target);
+  return resolve(base, targetPath);
+};
 
-const processWeatherData = async data => {
-  const foundData = data.find(stationData => stationData.stacja === cityName);
-
+const getDataFileName = async (city, content) => {
   try {
-    await writeFile(`./weather-history/${foundData.data_pomiaru}-${foundData.godzina_pomiaru}-${foundData.stacja}.txt`, JSON.stringify(foundData));
+    await appendFile(safeJoin(`./weather-history/`, `${city}.txt`), `${content}\n\n`);
   } catch (error) {
     await appendFile('./log/log.txt', `${fullTime}, ${fullDate} - ${error}\n\n`);
     setTimeout(() => {
       console.log(error.message);
     }, 1000);
   }
+};
 
-  if (!foundData) console.log('Nie znaleziono takiego miasta w bazie!');
+const processWeatherData = async (data, cityName) => {
+  const foundData = data.find(stationData => stationData.stacja === cityName);
+  if (!foundData) console.log('There is no such city in our API!');
 
   // eslint-disable-next-line no-restricted-syntax
   for (const element in foundData) {
@@ -40,13 +45,19 @@ const processWeatherData = async data => {
   Time: ${timeOfMeasurement}.00.
   In ${cityName} there is ${temperature}°, ${humidity}% of humidity, pressure ${pressurde} hPa,`;
   console.log(weatherInfo);
+
+  getDataFileName(cityName, weatherInfo);
 };
 
-try {
-  const response = await fetch(API_URL);
-  const data = await response.json();
-  processWeatherData(data);
-} catch (error) {
-  await appendFile('./log/log.txt', `${fullTime}, ${fullDate} - ${error}\n\n`);
-  console.log(`${error.name}. For more information look at log file.`);
-}
+const checkCityWeather = async cityName => {
+  try {
+    const response = await fetch(API_URL);
+    const data = await response.json();
+    await processWeatherData(data, cityName);
+  } catch (error) {
+    await appendFile('./log/log.txt', `${fullTime}, ${fullDate} - ${error}\n\n`);
+    console.log(`${error.name}. For more information look at log file.`);
+  }
+};
+
+checkCityWeather(process.argv[2]);
