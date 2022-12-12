@@ -55,7 +55,7 @@ const checkCityWeather = async cityName => {
     const data = await response.json();
     await processWeatherData(data, cityName);
   } catch (error) {
-    await appendFile('./log/log.txt', `${fullTime}, ${fullDate} - ${error}\n\n`);
+    await appendFile('./log/log-index.txt', `${fullTime}, ${fullDate} - ${error}\n\n`);
     console.log(`${error.name}. For more information look at log file.`);
   }
 };
